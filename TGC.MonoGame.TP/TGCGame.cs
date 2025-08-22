@@ -1,7 +1,8 @@
-﻿using System;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System;
+using TGC.MonoGame.TP.GUI;
 
 namespace TGC.MonoGame.TP
 {
@@ -17,6 +18,7 @@ namespace TGC.MonoGame.TP
         public const string ContentFolderMusic = "Music/";
         public const string ContentFolderSounds = "Sounds/";
         public const string ContentFolderSpriteFonts = "SpriteFonts/";
+        public const string ContentFolderFonts = "Fonts/";
         public const string ContentFolderTextures = "Textures/";
 
         /// <summary>
@@ -26,10 +28,10 @@ namespace TGC.MonoGame.TP
         {
             // Maneja la configuracion y la administracion del dispositivo grafico.
             Graphics = new GraphicsDeviceManager(this);
-            
+
             Graphics.PreferredBackBufferWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width - 100;
             Graphics.PreferredBackBufferHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height - 100;
-            
+
             // Para que el juego sea pantalla completa se puede usar Graphics IsFullScreen.
             // Carpeta raiz donde va a estar toda la Media.
             Content.RootDirectory = "Content";
@@ -68,6 +70,7 @@ namespace TGC.MonoGame.TP
             Projection =
                 Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, GraphicsDevice.Viewport.AspectRatio, 1, 250);
 
+
             base.Initialize();
         }
 
@@ -80,7 +83,7 @@ namespace TGC.MonoGame.TP
         {
             // Aca es donde deberiamos cargar todos los contenido necesarios antes de iniciar el juego.
             SpriteBatch = new SpriteBatch(GraphicsDevice);
-
+            GUIHelper.Init(this);
             // Cargo el modelo del logo.
             Model = Content.Load<Model>(ContentFolder3D + "tgc-logo/tgc-logo");
 
@@ -117,7 +120,7 @@ namespace TGC.MonoGame.TP
                 //Salgo del juego.
                 Exit();
             }
-            
+
             // Basado en el tiempo que paso se va generando una rotacion.
             Rotation += Convert.ToSingle(gameTime.ElapsedGameTime.TotalSeconds);
 
@@ -130,8 +133,10 @@ namespace TGC.MonoGame.TP
         ///     Se llama cada vez que hay que refrescar la pantalla.
         ///     Escribir aqui el codigo referido al renderizado.
         /// </summary>
+        bool showFPS = true;
         protected override void Draw(GameTime gameTime)
         {
+            var fps = 1.0 / gameTime.ElapsedGameTime.TotalSeconds;
             // Aca deberiamos poner toda la logia de renderizado del juego.
             GraphicsDevice.Clear(Color.Black);
 
@@ -145,8 +150,28 @@ namespace TGC.MonoGame.TP
                 Effect.Parameters["World"].SetValue(mesh.ParentBone.Transform * World);
                 mesh.Draw();
             }
-        }
 
+            GUIHelper.StartFrame(gameTime);
+            GUIHelper.DrawButton(
+                name: "FPS",
+                position: new Vector2(0, 0),
+                size: new Vector2(50, 30),
+                action: ToggleFPS,
+                fontSize: 20);
+
+            if (showFPS)
+                GUIHelper.DrawText(
+                    text: $"{fps.ToString("F0")}",
+                    position: new Vector2(60, 10),
+                    color: Vector4.One,
+                    fontSize: 80);
+
+            GUIHelper.RenderFrame();
+        }
+        void ToggleFPS()
+        {
+            showFPS = !showFPS;
+        }
         /// <summary>
         ///     Libero los recursos que se cargaron en el juego.
         /// </summary>
